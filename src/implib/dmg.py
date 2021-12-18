@@ -29,7 +29,7 @@ def mount(dmg: Path) -> Path:
     """Mount a DMG and return the mount point
     :param dmg (str): path to DMG file to mount"""
     cmd = ["/usr/bin/hdiutil", "attach", "-plist", "-nobrowse", dmg]
-    p = subprocess.run(cmd, capture_output=True)
+    p = subprocess.run(cmd, capture_output=True)  # type: ignore[arg-type]
 
     if p.returncode == 0:
         return get_mount_point(p.stdout)
@@ -41,7 +41,7 @@ def detach(vol: Path) -> None:
     """Detach a mounted DMG
     :param vol (str): volume file path the DMG is mounted to"""
     cmd = ["/usr/bin/hdiutil", "detach", "-quiet", vol]
-    p = subprocess.run(cmd, capture_output=True)
+    p = subprocess.run(cmd, capture_output=True)  # type: ignore[arg-type]
 
     if p.returncode != 0:
         raise DMGException(p)

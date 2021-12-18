@@ -4,16 +4,6 @@ from pathlib import Path
 from typing import Any, Dict
 from xml.etree import ElementTree
 
-# Used only for pulling the version to use.
-ACROBAT_APP_VER_ATTR = "com.adobe.acrobat.DC.viewer.app.pkg.MUI"
-
-# Additional receipt data that needs to be updated in the pkginfo file for Adobe Acrobat DC.
-ACROBAT_RECEIPT_ATTRS = ["com.adobe.acrobat.DC.viewer.app.pkg.MUI",
-                         "com.adobe.acrobat.DC.viewer.appsupport.pkg.MUI",
-                         "com.adobe.acrobat.DC.viewer.browser.pkg.MUI",
-                         "com.adobe.acrobat.DC.viewer.print_automator.pkg.MUI",
-                         "com.adobe.acrobat.DC.viewer.print_pdf_services.pkg.MUI"]
-
 
 def read_xml(f: Path) -> ElementTree.Element:
     """Read an XML file and return the root"""

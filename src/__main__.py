@@ -6,16 +6,17 @@ from implib import discover
 from implib import munkiimport
 from implib import package
 from implib import pkginfo
+from implib.munkirepo import MunkiImportPreferences
 
 
-def munki_kwargs(args: Namespace, pkg: package.AdobePackage) -> dict:
+def munki_kwargs(args: Namespace, pkg: package.AdobePackage, munki_repo: Path) -> dict:
     """Return the arguments to pass through to munkiimport"""
     display_name = f"{pkg.display_name} {args.suffix}"
     min_os_ver = args.min_os_ver or pkg.min_os
     result = {"--category": args.category,
               "--catalog": args.catalog,
               "--developer": args.developer,
-              "--repo_url": args.munki_repo,
+              "--repo_url": munki_repo,
               "--subdirectory": args.munki_subdir,
               "--minimum_os_version": min_os_ver,
               "--displayname": display_name,
@@ -31,13 +32,14 @@ def munki_kwargs(args: Namespace, pkg: package.AdobePackage) -> dict:
 
 
 def process():
-    args = arguments.construct()
+    munkiimport_prefs = MunkiImportPreferences()
+    args = arguments.construct(munkiimport_prefs)
 
     if args.list_sap_codes:
         package.list_sap_codes()
 
-    munki_repo = args.munki_repo or discover.munki_repo()
-    existing_pkgs = pkginfo.existing_pkginfo(Path(munki_repo))
+    munki_repo = args.munki_repo or munkiimport_prefs.repo_url
+    existing_pkgs = pkginfo.existing_pkginfo(munkiimport_prefs)
     packages = discover.adobe_packages(Path(args.adobe_dir))
     imported = list()
 
@@ -53,7 +55,7 @@ def process():
             pkg.min_os = args.min_os_ver
 
         if not pkg.imported and pkg.sap_code in args.import_sap_code:
-            munkiimport_args = munki_kwargs(args, pkg)
+            munkiimport_args = munki_kwargs(args, pkg, munki_repo)
             pkginfo_file = munkiimport.package(pkg, dry_run=args.dry_run, **munkiimport_args)
 
             if pkg.receipts:

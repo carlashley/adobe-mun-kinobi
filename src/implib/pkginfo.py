@@ -1,10 +1,12 @@
 import plistlib
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
-from urllib.parse import urlparse
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
-from .discover import walk_path, pkginfo_file_ext
+from .discover import walk_path
+
+if TYPE_CHECKING:
+    from .munkirepo import MunkiImportPreferences
 
 
 def read_pkginfo(pkginfo: Union[str, Path]) -> Dict[Any, Any]:
@@ -44,10 +46,8 @@ def update(pkginfo: Union[str, Path], dry_run: bool = False, receipts: Optional[
             print(f"Updated pkginfo {str(pkginfo)!r}")
 
 
-def existing_pkginfo(munki_repo: Path, file_ext: str = pkginfo_file_ext()) -> list:
+def existing_pkginfo(munkiimport_prefs: 'MunkiImportPreferences') -> List:
     """Returns existing pkginfo files from the munki repo
-    :param munki_repo (Path): munki repo"""
-    munki_repo = Path(urlparse(str(munki_repo)).path).joinpath("pkgsinfo")
-    result = walk_path(munki_repo, file_ext)
-
-    return result
+    :param pkgsinfo (Path): full path to the pkgsinfo folder
+    :param file_ext (str): packages info file extension"""
+    return walk_path(munkiimport_prefs.pkgsinfo_directory, munkiimport_prefs.pkginfo_extension)

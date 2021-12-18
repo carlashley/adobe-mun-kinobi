@@ -3,13 +3,25 @@ import argparse
 import sys
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
-from .discover import munki_repo
 from .package import SAP_CODES
 
+if TYPE_CHECKING:
+    from .munkirepo import MunkiImportPreferences
 
-def construct() -> argparse.Namespace:
-    default_munki_repo = munki_repo()
+
+def parse_repo_url(repo_url: Path) -> str:
+    """Convert repo_url to string and fix the file scheme that Path botches"""
+    url = urlparse(str(repo_url))
+    result = f"{url.scheme}://{url.path}" if url.scheme == "file" else str(repo_url)
+
+    return result
+
+
+def construct(munkiimport_prefs: 'MunkiImportPreferences') -> argparse.Namespace:
+    default_munki_repo = parse_repo_url(munkiimport_prefs.repo_url)
     default_pkg_dir = "apps"
     default_category = "Creativity"
     default_catalog = "testing"
@@ -112,11 +124,13 @@ def construct() -> argparse.Namespace:
 
     result = parser.parse_args()
 
-    if not result.list_sap_codes:
-        if not result.adobe_dir:
-            name = str(Path(sys.argv[0]).name)
-            parser.print_usage(sys.stderr)
-            print(f"{name}: error: the following arguments are required: --adobe-dir")
-            sys.exit(1)
+    # Check munkiimport preference file exists
+    munkiimport_prefs.find_preference_file()
+
+    if not result.list_sap_codes and not result.adobe_dir:
+        name = str(Path(sys.argv[0]).name)
+        parser.print_usage(sys.stderr)
+        print(f"{name}: error: the following arguments are required: --adobe-dir")
+        sys.exit(1)
 
     return result

@@ -22,7 +22,7 @@ def expand_package(pkg: Path, tmp_dir: Path = Path(gettempdir()).joinpath("acrob
     :param tmp_dir (str): temporary directory to expand to"""
     result = Path(tmp_dir)
     cmd = ["/usr/sbin/pkgutil", "--expand", pkg, tmp_dir]
-    p = subprocess.run(cmd, capture_output=True, encoding="utf-8")
+    p = subprocess.run(cmd, capture_output=True, encoding="utf-8")  # type: ignore[arg-type]
 
     if not p.returncode == 0:
         raise PkgutilException(p)
