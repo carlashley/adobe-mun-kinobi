@@ -96,10 +96,10 @@ class AdobePackage:
     app_icon: Union[Path, None] = field(compare=False)
     icon_dir: Path = field(compare=False, repr=False)
     description: str = field(compare=False)
+    pkginfo_file: str = field(compare=False, repr=False)
     imported: bool = field(default=False, compare=False)
 
     def __post_init__(self):
-        self.pkginfo_file = f"{self.pkg_name}-{self.version}"
         self.icon = self.icon_dir.joinpath(f"{self.pkg_name}-{self.version}.png")
 
 
@@ -216,6 +216,16 @@ def process_app_description(install_pkg: Path, sap_code: str, locale: str) -> st
     return result
 
 
+def guess_pkginfo_file(pkg_name: Path, version: str, pkginfo_ext: str) -> str:
+    """Guess the resulting pkginfo file based on observed munkiimport behaviour
+    :param pkg_name (str): the package name
+    :param version (str): the application verision
+    :param pkginfo_ext (str): the pkginfo extension per munkirepo configuration"""
+    result = f"{pkg_name}-{version}{pkginfo_ext}"
+
+    return result
+
+
 def process_package(install_pkg: Path, uninstall_pkg: Path, munkiimport_prefs: 'MunkiImportPreferences',
                     locale: str = "en_GB", dmg_file: Optional[Path] = None) -> AdobePackage:
     """Process an installer package for product information
@@ -245,6 +255,7 @@ def process_package(install_pkg: Path, uninstall_pkg: Path, munkiimport_prefs: '
         package["description"] = "Adobe Acrobat Pro DC makes your job easier every day with the trusted PDF converter."
         package.update(acrobat_patches)
 
+    package["pkginfo_file"] = guess_pkginfo_file(package["pkg_name"], package["version"], munkiimport_prefs.pkginfo_extension)
     result = AdobePackage(**package)
 
     return result
