@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict
 
+from .arguments import parse_repo_url
+
 
 class MunkiImportPreferences:
     """munkiimport preferences"""
@@ -38,7 +40,9 @@ class MunkiImportPreferences:
         """repo_url from preference file"""
         prefs = self.read_preferences()
         repo_url = prefs.get("repo_url", "file:///Volumes/munki_repo")
-        return Path(repo_url)
+        result = Path(parse_repo_url(repo_url))
+
+        return result
 
     @property
     def pkginfo_extension(self) -> str:
