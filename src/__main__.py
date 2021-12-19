@@ -36,9 +36,6 @@ def process():
     args = arguments.construct()
     munkiimport_prefs = MunkiImportPreferences()
 
-    if args.list_sap_codes:
-        package.list_sap_codes()
-
     munki_repo = args.munki_repo or munkiimport_prefs.repo_url
     existing_pkgs = pkginfo.existing_pkginfo(munkiimport_prefs)
     packages = discover.adobe_packages(Path(args.adobe_dir))

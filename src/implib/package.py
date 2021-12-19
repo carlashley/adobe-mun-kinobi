@@ -117,6 +117,16 @@ def list_sap_codes() -> None:
     exit()
 
 
+def list_locales() -> None:
+    """List supported locale codes"""
+    print("Supported locales:")
+
+    for locale in SUPPORTED_LOCALES:
+        print(f" - {locale!r}")
+
+    exit()
+
+
 def get_min_os_ver(f: Path) -> str:
     """Get the minium OS version required
     :param f (Path): Info.plist file to pull OS requirements from"""

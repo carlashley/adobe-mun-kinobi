@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .package import SAP_CODES, SUPPORTED_LOCALES
+from .package import SAP_CODES, SUPPORTED_LOCALES, list_sap_codes, list_locales
 
 
 __NAME__ = "adobe-mun-kinobi"
@@ -122,6 +122,11 @@ def construct() -> argparse.Namespace:
                         choices=sap_codes,
                         help=f"import specific Adobe products by SAP code, use {list_sap_codes_arg!r} to view codes")
 
+    parser.add_argument("--list-locales",
+                        action="store_true",
+                        dest="list_locales",
+                        help="list supported locale codes")
+
     parser.add_argument("--list-sap-codes",
                         action="store_true",
                         dest="list_sap_codes",
@@ -139,7 +144,13 @@ def construct() -> argparse.Namespace:
 
     result = parser.parse_args()
 
-    if not result.list_sap_codes and not result.adobe_dir:
+    if result.list_sap_codes:
+        list_sap_codes()
+
+    if result.list_locales:
+        list_locales()
+
+    if not result.list_sap_codes and not result.list_locales and not result.adobe_dir:
         name = str(Path(sys.argv[0]).name)
         parser.print_usage(sys.stderr)
         print(f"{name}: error: the following arguments are required: --adobe-dir")

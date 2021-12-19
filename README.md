@@ -17,6 +17,8 @@ Once these are all found, then the `optionXML.xml` file is parsed, as well as th
 
 In most cases, these package files also contain an icon for the application as a `.png` file. This is a fairly basic quality icon that is then passed on as an argument to `munkiimport` as well as the file being copied to the icons folder in the munki repo folder.
 
+Existing packages are skipped presuming an existing pkginfo file exists in the repo that corresponds to the one that would be created if the package was imported.
+
 ## Adobe Acrobat
 The Adobe Acrobat package built in the Adobe Admin Console build system is "special" as it does not have the same package structure as the other packages built through this sytem.
 
@@ -44,12 +46,22 @@ The default folder path for icons is the munki repo with `icons` appended. For e
 /Volumes/munki_repo/icons
 ```
 
+## Package Description
+When each package is processed, a description is pulled from the `Application.json` file bundle (excluding the Adobe Acrobat package) based on the locale supplied to the build system, and that description is passed into `munkiimport`. If a description doesn't exist, the description defaults to the package name.
+
+This utility defaults the locale to `en_GB`, but an override can be provided using a supported locale (use `--list-locales` for a ist).
+
+# Importing specific apps
+A specific package can be imported by provided the product SAP code (use `--list-sap-codes` for a full list) with the `--import-sap-code` argument. Multiple SAP codes can be passed to import multiple packages.
+
+Existing packages are skipped presuming an existing pkginfo file exists in the repo that corresponds to the one that would be created if the package was imported.
+
 
 # Usage:
 ```
 usage: adobe-mun-kinobi [-h] [--adobe-dir [dir]] [--locale [locale]] [--category [category]] [--catalog [catalog]] [--developer [developer]] [--munki-repo [dir]]
                         [--munki-subdir [dir]] [--min-munki-version [min munki version]] [--min-os-ver [min os ver]] [--suffix [suffix]] [--import-sap-code [code] [[code] ...]]
-                        [--list-sap-codes] [-n] [-v]
+                        [--list-locales] [--list-sap-codes] [-n] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -69,6 +81,7 @@ optional arguments:
   --suffix [suffix]     override the default display name suffix 'Creative Cloud' for all packages processed
   --import-sap-code [code] [[code] ...]
                         import specific Adobe products by SAP code, use '--list-sap-codes' to view codes
+  --list-locales        list supported locale codes
   --list-sap-codes      list Adobe products SAP codes
   -n, --dry-run         performs a dry run (outputs import commands to stdout)
   -v, --version         show program's version number and exit
