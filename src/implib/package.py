@@ -4,12 +4,17 @@ import plistlib
 from dataclasses import dataclass, field
 from pathlib import Path
 from sys import exit
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from urllib.parse import urlparse
 
+from .appicon import find_app_icon
 from .xmltodict import convert_xml, read_xml
 from . import acrobat
-# from . import dmg
-# from . import pkgutil
+from . import application
+
+
+if TYPE_CHECKING:
+    from .munkirepo import MunkiImportPreferences
 
 # Blocking apps
 BLOCKING_APPS = {"APRO": ["Microsoft Word", "Safari"]}
@@ -40,6 +45,41 @@ SAP_CODES = {"AEFT": "Adobe After Effects",
              "SBSTP": "Adobe Substance Painter",
              "SPRK": "Adobe XD"}
 
+# Supported locales
+SUPPORTED_LOCALES = ["ar_AE",
+                     "cs_CZ",
+                     "da_DK",
+                     "de_DE",
+                     "en_AE",
+                     "en_GB",
+                     "en_IL",
+                     "en_US",
+                     "en_XM",
+                     "es_ES",
+                     "es_MX",
+                     "fi_FI",
+                     "fr_CA",
+                     "fr_FR",
+                     "fr_MA",
+                     "fr_XM",
+                     "he_IL",
+                     "hu_HU",
+                     "it_IT",
+                     "ja_JP",
+                     "ko_KR",
+                     "nb_NO",
+                     "nl_NL",
+                     "no_NO",
+                     "pl_PL",
+                     "pt_BR",
+                     "ru_RU",
+                     "sv_SE",
+                     "th_TH",
+                     "tr_TR",
+                     "uk_UA",
+                     "zh_CN",
+                     "zh_TW"]
+
 
 @dataclass(eq=True, order=True)
 class AdobePackage:
@@ -53,11 +93,14 @@ class AdobePackage:
     uninstaller: Path = field(compare=False)
     receipts: list = field(compare=False)
     blocking_apps: list = field(compare=False)
+    app_icon: Union[Path, None] = field(compare=False)
+    icon_dir: Path = field(compare=False, repr=False)
+    description: str = field(compare=False)
     imported: bool = field(default=False, compare=False)
 
     def __post_init__(self):
         self.pkginfo_file = f"{self.pkg_name}-{self.version}"
-        self.icon = f"{self.pkg_name}.png"
+        self.icon = self.icon_dir.joinpath(f"{self.pkg_name}-{self.version}.png")
 
 
 def list_sap_codes() -> None:
@@ -137,9 +180,39 @@ def process_opt_xml(install_info: Dict[Any, Any]) -> Dict[Any, Any]:
     return result
 
 
-def process_package(install_pkg: Path, uninstall_pkg: Path, dmg_file: Optional[Path] = None) -> AdobePackage:
+def process_app_description(install_pkg: Path, sap_code: str, locale: str) -> str:
+    """Process the Application.json file to get a description to use in munki
+    :param install_pkg (Path): install package to process app description from
+    :param sap_code (str): application SAP code
+    :param locale (str): locale value used when building the package"""
+    json_file = application.find_application_json(install_pkg, sap_code)
+    app_json = application.read_json_file(json_file)
+
+    try:
+        desc_locales = app_json["ProductDescription"]["DetailedDescription"]["Language"]
+    except KeyError:
+        desc_locales = app_json["ProductDescription"]["Tagline"]["Language"]
+
+    descriptions = list()
+
+    # Adobe does weird stuff, like duplicate strings...
+    for desc in desc_locales:
+        _locale = desc["locale"]
+        if _locale == locale and _locale in SUPPORTED_LOCALES and desc["value"] not in descriptions:
+            descriptions.append(desc["value"])
+
+    result = " ".join(descriptions) if len(descriptions) > 1 else "".join(descriptions)
+
+    return result
+
+
+def process_package(install_pkg: Path, uninstall_pkg: Path, munkiimport_prefs: 'MunkiImportPreferences',
+                    locale: str = "en_GB", dmg_file: Optional[Path] = None) -> AdobePackage:
     """Process an installer package for product information
-    :param install_pkg (str): path to package
+    :param install_pkg (Path): path to install package
+    :param uninstall_pkg (Path): path to uninstall package
+    :param munkiimport_prefs (MunkiImportPreferences): instance of MunkiImportPreferences
+    :param locale (str): locale used when building package
     :param dmg_file (str): DMG file to mount (currently only applies to Acrobat)"""
     opt_xml = install_pkg.joinpath("Contents/Resources/optionXML.xml")
     info_plist = install_pkg.joinpath("Contents/Info.plist")
@@ -150,10 +223,16 @@ def process_package(install_pkg: Path, uninstall_pkg: Path, dmg_file: Optional[P
     package["uninstaller"] = uninstall_pkg
     package["min_os"] = get_min_os_ver(info_plist)
     package["blocking_apps"] = BLOCKING_APPS.get(package["sap_code"], list())
-    package['receipts'] = list()
+    package["receipts"] = list()
+    package["app_icon"] = find_app_icon(install_pkg, package["sap_code"])
+    package["icon_dir"] = Path(urlparse(str(munkiimport_prefs.icon_directory)).path)
 
-    if package["sap_code"] == 'APRO':
+    if package["sap_code"] != "APRO":
+        package["description"] = process_app_description(install_pkg, package["sap_code"], locale)
+
+    if package["sap_code"] == "APRO":
         acrobat_patches = acrobat.package_patch(dmg_file)  # type: ignore[arg-type]
+        package["description"] = "Adobe Acrobat Pro DC makes your job easier every day with the trusted PDF converter."
         package.update(acrobat_patches)
 
     result = AdobePackage(**package)

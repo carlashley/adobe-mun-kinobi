@@ -31,7 +31,6 @@ def write_pkginfo(pkginfo: Union[str, Path], data: Dict[Any, Any]) -> None:
 def update(pkginfo: Union[str, Path], dry_run: bool = False, receipts: Optional[Dict] = None) -> None:
     """Update the specified pkginfo with additional data
     :param pkginfo (str, Path, Purepath): path to the pkginfo file to update
-    :param blocking_apps (list, set): any blocking apps to update
     :param receipts (dict): any receipts that need to be updated in the pkginfo"""
     if not dry_run:
         patch = dict()
@@ -48,6 +47,5 @@ def update(pkginfo: Union[str, Path], dry_run: bool = False, receipts: Optional[
 
 def existing_pkginfo(munkiimport_prefs: 'MunkiImportPreferences') -> List:
     """Returns existing pkginfo files from the munki repo
-    :param pkgsinfo (Path): full path to the pkgsinfo folder
-    :param file_ext (str): packages info file extension"""
+    :param munkiimport_prefs (MunkiImportPreferences): instance of MunkiImportPreferences"""
     return walk_path(munkiimport_prefs.pkgsinfo_directory, munkiimport_prefs.pkginfo_extension)

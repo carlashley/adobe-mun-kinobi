@@ -102,7 +102,7 @@ def pkginfo_file(output: str, munki_repo: str) -> Optional[Path]:
     return result
 
 
-def update_import_cmd(pkg: AdobePackage, dry_run: bool = True, **kwargs) -> List[Any]:
+def update_import_cmd(pkg: AdobePackage, dry_run: bool = False, **kwargs) -> List[Any]:
     """Process the arguments provided into a list to pass to subprocess
     :param pkg (str): package path
     :dry_run (bool): perform a dry run (does not import packages)
@@ -114,11 +114,12 @@ def update_import_cmd(pkg: AdobePackage, dry_run: bool = True, **kwargs) -> List
     installer = pkg.installer
     uninstaller = pkg.uninstaller
 
+    # Convert all values to strings to avoid issues when printing the cmd in dry runs
     for k, v in kwargs.items():
         if dry_run and k in ["--uninstallerpkg"]:
-            result.extend([k, uninstaller.name])
+            result.extend([k, str(uninstaller.name)])
         else:
-            result.extend([k, v])
+            result.extend([k, str(v)])
 
     # Add any blocking apps
     if pkg.blocking_apps:
@@ -134,9 +135,9 @@ def update_import_cmd(pkg: AdobePackage, dry_run: bool = True, **kwargs) -> List
     return result
 
 
-def package(pkg: AdobePackage, dry_run: bool = True, **kwargs) -> Optional[Path]:
+def package(pkg: AdobePackage, dry_run: bool = False, **kwargs) -> Optional[Path]:
     """Import a package in to the munki repo
-    :param pkg (str): package path
+    :param pkg (AdobePackage): AdobePackage instance
     :dry_run (bool): perform a dry run (does not import packages)
     :kwargs (dict): additional arguments to pass to the munkiimport command"""
     result = None
@@ -159,6 +160,7 @@ def package(pkg: AdobePackage, dry_run: bool = True, **kwargs) -> Optional[Path]
 
 
 def makecatalogs(munki_repo: Path) -> None:
-    """Run the makecatalogs utility after importing"""
+    """Run the makecatalogs utility after importing
+    :param munki_repo (Path): munki repo to use in makecatalogs run"""
     cmd = ["/usr/local/munki/makecatalogs", "--repo_url", munki_repo]
     subprocess.run(cmd)  # type: ignore[arg-type]

@@ -6,6 +6,7 @@ from implib import discover
 from implib import munkiimport
 from implib import package
 from implib import pkginfo
+from implib.appicon import copy_icon
 from implib.munkirepo import MunkiImportPreferences
 
 
@@ -20,9 +21,9 @@ def munki_kwargs(args: Namespace, pkg: package.AdobePackage, munki_repo: Path) -
               "--subdirectory": args.munki_subdir,
               "--minimum_os_version": min_os_ver,
               "--displayname": display_name,
-              "--description": display_name,
+              "--description": pkg.description or display_name,
               "--name": pkg.pkg_name,
-              "--icon": pkg.icon,
+              "--icon": pkg.icon.name,
               "--minimum_munki_version": args.min_munki_ver,
               "--arch": pkg.arch,
               "--uninstallerpkg": pkg.uninstaller,
@@ -48,7 +49,8 @@ def process():
         print("  Note: basename values are used in the dry run output for brevity.")
 
     for app, files in packages.items():
-        pkg = package.process_package(files["installer"], files["uninstaller"], files.get("dmg_file"))
+        pkg = package.process_package(files["installer"], files["uninstaller"],
+                                      munkiimport_prefs, args.locale, files.get("dmg_file"))
         pkg.imported = any([pkg.pkginfo_file in str(f) for f in existing_pkgs])
 
         if args.min_os_ver:
@@ -63,9 +65,12 @@ def process():
 
             if pkginfo_file:
                 imported.append(pkginfo_file)
+
+            # if pkg.app_icon and pkg.icon:
+            #     copy_icon(pkg.app_icon, pkg.icon, False)  # To solve: Acrobat icon is gone because unmount
         else:
             if pkg.sap_code in args.import_sap_code:
-                print(f"Skipping {pkg.pkg_name!r}, it appears to have previously been imported (existing pkginfo: {pkg.pkginfo_file!r})")
+                print(f"Skipping {pkg.pkg_name!r}, existing pkginfo: {pkg.pkginfo_file!r})")
 
     if imported and not args.dry_run:
         munkiimport.makecatalogs(munki_repo)

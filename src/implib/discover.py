@@ -35,26 +35,26 @@ def walk_path(d: Path, file_ext: Optional[Union[str, None]] = ".pkg") -> List:
     :param file_ext (str): the file extension to filter on"""
     result = list()
     found_files = set()
+    folder_file_exts = [".pkg", ".dmg"]  # These we treat a little differently
     d = d.expanduser()
 
     if d.exists():
         for path_root, dirs, files in walk(d):
-            basepath = Path(path_root)
+            if file_ext in folder_file_exts:
+                for _ in dirs:
+                    pkg = Path(path_root).joinpath(_)
 
-            if file_ext and file_ext in [".pkg", ".dmg"]:
-                f = Path(path_root)
+                    if file_ext == ".dmg":
+                        dmg_glob = [f for f in pkg.glob("*.dmg")]
+                        dmg_file = "".join([str(f) for f in dmg_glob if re.search(r"APRO\d+", str(f))])
+                        pkg = pkg.joinpath(dmg_file)
 
-                if file_ext == ".dmg":
-                    dmg_glob = [f for f in basepath.glob("*.dmg")]
-                    dmg_file = "".join([str(f) for f in dmg_glob if re.search(r"APRO\d+", str(f))])
-                    f = f.joinpath(dmg_file)
-
-                if f and f.suffix == file_ext and f.exists():
-                    found_files.add(f)
+                    if pkg.suffix == file_ext:
+                        found_files.add(pkg)
             else:
-                for f in [Path(f) for f in files]:
-                    f = basepath.joinpath(f)
-                    found_files.add(f)
+                for f in files:
+                    fn = Path(path_root).joinpath(f)
+                    found_files.add(fn)
 
     result = sorted([f for f in found_files])
 

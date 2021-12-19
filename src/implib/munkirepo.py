@@ -19,7 +19,7 @@ class MunkiImportPreferences:
         configure_munkiimport = "munkiimport --configure"
 
         if not user.exists() or system.exists() and not user.exists() and not system.exists():
-            message = (f"Could not find preference files at either {str(user)!r} or {str(system)!r}\n"
+            message = (f"Could not find preference files at either:\n - {str(user)!r}\n - {str(system)!r}\n"
                        f"Please run {configure_munkiimport!r} and set values for the repo URL and"
                        " pkginfo extension.")
 
@@ -51,6 +51,6 @@ class MunkiImportPreferences:
         return self.repo_url.joinpath("pkgsinfo")
 
     @property
-    def icons_directory(self) -> Path:
+    def icon_directory(self) -> Path:
         """icon directory from repo_url"""
         return self.repo_url.joinpath("icons")

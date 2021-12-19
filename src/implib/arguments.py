@@ -6,14 +6,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from .package import SAP_CODES
+from .package import SAP_CODES, SUPPORTED_LOCALES
 
 if TYPE_CHECKING:
     from .munkirepo import MunkiImportPreferences
 
 
 def parse_repo_url(repo_url: Path) -> str:
-    """Convert repo_url to string and fix the file scheme that Path botches"""
+    """Convert repo_url to string and fix the file scheme that Path botches
+    :param repo_url (Path): repo url to fix when botched by Path"""
     url = urlparse(str(repo_url))
     result = f"{url.scheme}://{url.path}" if url.scheme == "file" else str(repo_url)
 
@@ -28,6 +29,7 @@ def construct(munkiimport_prefs: 'MunkiImportPreferences') -> argparse.Namespace
     default_developer = "Adobe"
     default_min_munki_ver = "2.1"
     default_display_name_suffix = "Creative Cloud"
+    default_locale = "en_GB"
     sap_codes = sorted([code for code in SAP_CODES])
     list_sap_codes_arg = "--list-sap-codes"
     parser = argparse.ArgumentParser()
@@ -37,6 +39,14 @@ def construct(munkiimport_prefs: 'MunkiImportPreferences') -> argparse.Namespace
                         dest="adobe_dir",
                         metavar="[dir]",
                         help="directory containing unzipped Adobe installers")
+
+    parser.add_argument("--locale",
+                        type=str,
+                        dest="locale",
+                        metavar="[locale]",
+                        default=default_locale,
+                        choices=SUPPORTED_LOCALES,
+                        help=f"override the default locale {default_locale!r} for all packages processed")
 
     parser.add_argument("--category",
                         type=str,

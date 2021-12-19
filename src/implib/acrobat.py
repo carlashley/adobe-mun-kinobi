@@ -2,7 +2,6 @@
 import shutil
 
 from pathlib import Path
-from pprint import pformat
 from typing import Any, Dict, Generator, List, Union
 
 from .pkgutil import expand_package
@@ -120,8 +119,8 @@ def package_patch(dmg_file: Path) -> Dict[Any, Any]:
     min_os_ver = minimum_os_ver(dist_xml_file)
 
     result = dict()
-    result["version"] = version
     result["receipts"] = receipts  # type: ignore[assignment]
+    result["version"] = version
 
     # Only include the correct min_os_ver if it's in the Distribution script of the Acrobat package
     if min_os_ver:
