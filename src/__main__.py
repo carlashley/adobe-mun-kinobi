@@ -71,7 +71,7 @@ def process():
                 print(f"  > No icon found for {pkg.pkg_name!r}")
         else:
             if pkg.sap_code in args.import_sap_code:
-                print(f"Skipping {pkg.pkg_name!r}, existing pkginfo: {pkg.pkginfo_file!r})")
+                print(f"Skipping {pkg.pkg_name!r}, existing pkginfo: {pkg.pkginfo_file!r}")
 
     if imported and not args.dry_run:
         munkiimport.makecatalogs(munki_repo)
