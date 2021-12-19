@@ -2,6 +2,7 @@ import plistlib
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from urllib.parse import urlparse
 
 from .discover import walk_path
 
@@ -48,4 +49,5 @@ def update(pkginfo: Union[str, Path], dry_run: bool = False, receipts: Optional[
 def existing_pkginfo(munkiimport_prefs: 'MunkiImportPreferences') -> List:
     """Returns existing pkginfo files from the munki repo
     :param munkiimport_prefs (MunkiImportPreferences): instance of MunkiImportPreferences"""
-    return walk_path(munkiimport_prefs.pkgsinfo_directory, munkiimport_prefs.pkginfo_extension)
+    repo_url = Path(urlparse(str(munkiimport_prefs.pkgsinfo_directory)).path)
+    return walk_path(repo_url, munkiimport_prefs.pkginfo_extension)
