@@ -95,8 +95,8 @@ def pkginfo_file(output: str, munki_repo: str) -> Optional[Path]:
     f = "".join([line.strip() for line in output.splitlines()
                  if line.startswith(success_prefix)]).replace(success_prefix, "")
 
-    munki_repo = urlparse(munki_repo).path
-    pkginfo = f.replace(success_prefix, "").rstrip(".")
+    munki_repo = urlparse(str(munki_repo)).path
+    pkginfo = str(f).replace(success_prefix, "").rstrip(".")
     result = Path(munki_repo).joinpath(pkginfo)
 
     return result
