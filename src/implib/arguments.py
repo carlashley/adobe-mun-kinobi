@@ -3,13 +3,15 @@ import argparse
 import sys
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from .package import SAP_CODES, SUPPORTED_LOCALES
 
-if TYPE_CHECKING:
-    from .munkirepo import MunkiImportPreferences
+
+__NAME__ = "adobe-mun-kinobi"
+__VERSION__ = "1.0.20211219"
+__LICENSE__ = "Apache License 2.0"
+__VERSION_STRING__ = f"{__NAME__} v{__VERSION__} licensed for use under the {__LICENSE__} license"
 
 
 def parse_repo_url(repo_url: Path) -> str:
@@ -21,8 +23,8 @@ def parse_repo_url(repo_url: Path) -> str:
     return result
 
 
-def construct(munkiimport_prefs: 'MunkiImportPreferences') -> argparse.Namespace:
-    default_munki_repo = parse_repo_url(munkiimport_prefs.repo_url)
+def construct() -> argparse.Namespace:
+    default_munki_repo = "file:///Volumes/munki_repo"
     default_pkg_dir = "apps"
     default_category = "Creativity"
     default_catalog = "testing"
@@ -77,7 +79,6 @@ def construct(munkiimport_prefs: 'MunkiImportPreferences') -> argparse.Namespace
                         dest="munki_repo",
                         required=False,
                         metavar="[dir]",
-                        default=default_munki_repo,
                         help=f"override or use a custom munki repo path, defaults to {default_munki_repo!r}")
 
     parser.add_argument("--munki-subdir",
@@ -132,10 +133,11 @@ def construct(munkiimport_prefs: 'MunkiImportPreferences') -> argparse.Namespace
                         required=False,
                         help="performs a dry run (outputs import commands to stdout)")
 
-    result = parser.parse_args()
+    parser.add_argument("-v", "--version",
+                        action="version",
+                        version=__VERSION_STRING__)
 
-    # Check munkiimport preference file exists
-    munkiimport_prefs.find_preference_file()
+    result = parser.parse_args()
 
     if not result.list_sap_codes and not result.adobe_dir:
         name = str(Path(sys.argv[0]).name)

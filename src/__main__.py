@@ -33,8 +33,8 @@ def munki_kwargs(args: Namespace, pkg: package.AdobePackage, munki_repo: Path) -
 
 
 def process():
+    args = arguments.construct()
     munkiimport_prefs = MunkiImportPreferences()
-    args = arguments.construct(munkiimport_prefs)
 
     if args.list_sap_codes:
         package.list_sap_codes()
@@ -43,10 +43,12 @@ def process():
     existing_pkgs = pkginfo.existing_pkginfo(munkiimport_prefs)
     packages = discover.adobe_packages(Path(args.adobe_dir))
     imported = list()
+    status_message = "Gathering Adobe installer attributes from packages ..."
 
-    print(f"Gathering Adobe installer attributes from packages in {args.adobe_dir!r} ...")
     if args.dry_run:
-        print("  Note: basename values are used in the dry run output for brevity.")
+        status_message = f"{status_message} (basename values are used in the dry run output for brevity)."
+
+    print(status_message)
 
     for app, files in packages.items():
         pkg = package.process_package(files["installer"], files["uninstaller"],
@@ -66,8 +68,10 @@ def process():
             if pkginfo_file:
                 imported.append(pkginfo_file)
 
-            # if pkg.app_icon and pkg.icon:
-            #     copy_icon(pkg.app_icon, pkg.icon, False)  # To solve: Acrobat icon is gone because unmount
+            if pkg.app_icon and pkg.icon:
+                copy_icon(pkg.app_icon, pkg.icon, args.dry_run)
+            else:
+                print(f"  > No icon found for {pkg.pkg_name!r}")
         else:
             if pkg.sap_code in args.import_sap_code:
                 print(f"Skipping {pkg.pkg_name!r}, existing pkginfo: {pkg.pkginfo_file!r})")

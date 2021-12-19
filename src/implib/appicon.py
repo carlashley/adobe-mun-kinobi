@@ -62,11 +62,11 @@ def copy_icon(icon_src: Path, icon_dst: Path, dry_run: bool = False) -> bool:
         result = icon_dst.exists()
 
         if result:
-            print(f"Copied icon {str(icon_dst.name)!r} to icons folder")
+            print(f"  > Copied icon {str(icon_dst.name)!r} to icons folder")
     elif dry_run:
         if not icon_dst.exists():
-            print(f"Copy icon {str(icon_dst.name)!r} to icons folder")
+            print(f"  > Copy icon {str(icon_dst.name)!r} to icons folder")
         else:
-            print(f"Icon {str(icon_dst.name)!r} exists in icons folder")
+            print(f"  > Icon {str(icon_dst.name)!r} exists in icons folder")
 
     return result
