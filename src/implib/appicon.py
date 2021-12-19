@@ -54,6 +54,9 @@ def copy_icon(icon_src: Path, icon_dst: Path, dry_run: bool = False) -> bool:
     result = False
 
     if not dry_run and not icon_dst.exists():
+        if not icon_dst.parent.exists():
+            icon_dst.parent.mkdir(parents=True)
+
         if icon_dst.suffix == '.icns':
             convert_icns_to_png(icon_src, icon_dst, dry_run)
         else:
