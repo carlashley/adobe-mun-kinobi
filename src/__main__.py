@@ -38,7 +38,7 @@ def process():
 
     munki_repo = args.munki_repo or munkiimport_prefs.repo_url
     existing_pkgs = pkginfo.existing_pkginfo(munkiimport_prefs)
-    packages = discover.adobe_packages(Path(args.adobe_dir))
+    packages = discover.adobe_packages(Path(args.adobe_dir).resolve())
     imported = list()
     status_message = "Gathering Adobe installer attributes from packages ..."
 
