@@ -9,7 +9,7 @@ from .package import SAP_CODES, SUPPORTED_LOCALES, list_sap_codes, list_locales
 
 
 __NAME__ = "adobe-mun-kinobi"
-__VERSION__ = "1.0.20211220"
+__VERSION__ = "1.0.20220315"
 __LICENSE__ = "Apache License 2.0"
 __VERSION_STRING__ = f"{__NAME__} v{__VERSION__} licensed for use under the {__LICENSE__} license"
 
